@@ -1,20 +1,20 @@
 package entity;
 
-public class Field {
+public abstract class Field {
 	private String name;
 	private int points;
 
-	public Field(String name, int point) {
+	public Field(String name, int points) {
 		this.name = name;
-		this.points = point;
+		this.points = points;
 	}
 
 	@Override
 	public String toString() {
-		return "felt [name=" + name + ", point=" + points + "]";
+		return "felt [name=" + name + ", points=" + points + "]";
 	}
 	
-	public int getPoint() {
+	public int getPoints() {
 		return points;
 	}
 	

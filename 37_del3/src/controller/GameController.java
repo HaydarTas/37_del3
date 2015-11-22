@@ -3,59 +3,53 @@ package controller;
 
 import java.awt.Color;
 import desktop_codebehind.Car;
-import desktop_fields.*;
+//import desktop_fields.*;
 import desktop_fields.Street;
 import desktop_resources.GUI;
-import entity.Field;
-import entity.Dicebox;
-import entity.Player;
+import entity.*;
+
 
 public class GameController {
 	
-	Player spiller1 = new Player();
-	Player spiller2 = new Player();
+	Player player1 = new Player();
+	Player player2 = new Player();
 	
-	Dicebox baeger = new Dicebox();
+	Dicebox box = new Dicebox();
 	
-	Field[] felter = new Field[13];
+	Field[] field = new Field[22];
 
 	public static void main(String[] args) {
 		new GameController().run();
 	}
 
 	public void run() {
-
 		setupGame();
-
 		setupGUI();
-
+		
 		while (true) {
-
-			playerTurn(spiller1);
-
-			if (spiller1.getBalance() >= 3000) {
-				GUI.showMessage("spiller "+ spiller1.getName() +" vinder spillet med " + spiller1.getBalance() + "point");
-				System.out.println("spiller "+spiller1.getName()+" vinder spillet med " + spiller1.getBalance() + "point");
+			playerTurn(player1);
+			if (player1.getBalance() >= 3000) {
+				GUI.showMessage("spiller "+ player1.getName() +" vinder spillet med " + player1.getBalance() + "point");
+				System.out.println("spiller "+player1.getName()+" vinder spillet med " + player1.getBalance() + "point");
 				break;
 			}
-			else if (spiller2.isBankrupt()) {
-				GUI.showMessage("spiller "+spiller1.getName()+" vinder spillet da spiller "+spiller2.getName()+" gik konkurs. ");
-				System.out.println("spiller "+spiller1.getName()+" vinder spillet da spiller "+spiller2.getName()+" gik konkurs. ");
+			else if (player2.isBankrupt()) {
+				GUI.showMessage("spiller "+player1.getName()+" vinder spillet da spiller "+player2.getName()+" gik konkurs. ");
+				System.out.println("spiller "+player1.getName()+" vinder spillet da spiller "+player2.getName()+" gik konkurs. ");
 				break;
 			}
 
-			playerTurn(spiller2);
-
-			if (spiller2.getBalance() >= 3000) {				
-				GUI.showMessage("spiller "+ spiller2.getName() +" vinder spillet med " + spiller2.getBalance() + "point");
-				System.out.println("spiller "+spiller2.getName()+" vinder spillet med " + spiller2.getBalance() + "point");
+			playerTurn(player2);
+			if (player2.getBalance() >= 3000) {				
+				GUI.showMessage("spiller "+ player2.getName() +" vinder spillet med " + player2.getBalance() + "point");
+				System.out.println("spiller "+player2.getName()+" vinder spillet med " + player2.getBalance() + "point");
 
 				
 				break;
 			}
-			else if (spiller1.isBankrupt()) {
-				GUI.showMessage("spiller "+spiller2.getName()+" vinder spillet da spiller "+spiller1.getName()+" gik konkurs. ");
-				System.out.println("spiller "+spiller2.getName()+" vinder spillet da spiller "+spiller1.getName()+" gik konkurs. ");
+			else if (player1.isBankrupt()) {
+				GUI.showMessage("spiller "+player2.getName()+" vinder spillet da spiller "+player1.getName()+" gik konkurs. ");
+				System.out.println("spiller "+player2.getName()+" vinder spillet da spiller "+player1.getName()+" gik konkurs. ");
 
 				break;
 			}
@@ -63,58 +57,63 @@ public class GameController {
 
 	}
 
-	private void playerTurn(Player spiller) {
-
-		int slag = baeger.roll();
-
-		int point = felter[slag].getPoint();
-		String felt = felter[slag].getfeltNavn();
-		boolean saldo_tjek = spiller.addToBalance(point);
+	private void playerTurn(Player player) {
+		int roll = box.roll();
+		int points = field[roll].getPoints();
+		String fieldname = field[roll].getName();
+		boolean check_account = player.addToBalance(points);
 		
-		if(saldo_tjek == true){
-			GUI.setBalance(spiller.getName(), spiller.getBalance());			
+		if(check_account == true){
+			GUI.setBalance(player.getName(), player.getBalance());			
 		}
 		else{
-			spiller.setBankrupt();
+			player.setBankrupt();
 		}
 
-		System.out.println("spiller" + spiller.getName() + "  har slået: " + slag + " han fik: " + point
-				+ " og han har landet på felt: " + felt + ", saldo:" + spiller.getBalance());
-		GUI.removeAllCars(spiller.getName());
-		GUI.setCar(slag-1, spiller.getName());
+		System.out.println("spiller" + player.getName() + "  har slået: " + roll + " han fik: " + points
+				+ " og han har landet p� felt: " + field + ", saldo:" + player.getBalance());
+		GUI.removeAllCars(player.getName());
+		GUI.setCar(roll-1, player.getName());
 		//Suspend excecution for 200 ms
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
 	private void setupGame() {
-		felter[2] = new Field("tower", 250);
-		felter[3] = new Field("Crater", -100);
-		felter[4] = new Field("Palace gates", 100);
-		felter[5] = new Field("Cold Desert", -20);
-		felter[6] = new Field("Walled city", 180);
-		felter[7] = new Field("Monastery", 0);
-		felter[8] = new Field("Black cave", -70);
-		felter[9] = new Field("Huts in the mountain", 60);
-		felter[10] = new Field("The werewall(werewolf-wall)", -80);
-		felter[11] = new Field("The pit", -50);
-		felter[12] = new Field("Goldmine", 650);
+		field[0] = new Territory("Tribe encampment", 250);
+		field[1] = new Territory("Crater", 250);
+		field[2] = new Territory("Mountain", -100);
+		field[3] = new Territory("Cold desert", 100);
+		field[4] = new Territory("Black cave", -20);
+		field[5] = new Territory("The werewall", 180);
+		field[6] = new Territory("Mountain village", 0);
+		field[7] = new Territory("South Citadel", -70);
+		field[8] = new Territory("Palads gates", 60);
+		field[9] = new Territory("Tower", -80);
+		field[10] = new Territory("Castle", -50);
+		field[11] = new Refuge("Walled city", 650);
+		field[12] = new Refuge("Monastery", 0);
+		field[13] = new LaborCamp("Huts in the mountain", 0);
+		field[14] = new LaborCamp("The pit", 0);
+		field[15] = new Tax("Goldmine", 0);
+		field[16] = new Tax("Caravan", 0);
+		field[17] = new Fleet("Second Sail", 0);
+		field[18] = new Fleet("Sea Grover", 0);
+		field[19] = new Fleet("The Buccanees", 0);
+		field[20] = new Fleet("Privateer armade", 0);
 
 	}
 
 	private void setupGUI() {
 
-		Field[] fields = new Field[11];
+		desktop_fields.Field[] fields = new desktop_fields.Field[22];
 
 		fields[0] = new Street.Builder().setBgColor(Color.gray).setTitle("tower").build();
-
 		fields[1] = new Street.Builder().setBgColor(Color.blue).setTitle("Crater").build();
-
 		fields[2] = new Street.Builder().setBgColor(Color.white).setTitle("Palace gates").build();
 		fields[3] = new Street.Builder().setBgColor(Color.gray).setTitle("Cold Desert").build();
 		fields[4] = new Street.Builder().setBgColor(Color.green).setTitle("Walled city").build();
@@ -125,8 +124,8 @@ public class GameController {
 		fields[9] = new Street.Builder().setBgColor(Color.blue).setTitle("The pit").build();
 		fields[10] = new Street.Builder().setBgColor(Color.CYAN).setTitle("Goldmine").build();
 
-		spiller1.setName(" Christian");
-		spiller2.setName(" Ronni");
+		player1.setName("Christian");
+		player2.setName("Ronni");
 
 		GUI.create(fields);
 
@@ -134,10 +133,10 @@ public class GameController {
 			
 
 		.build();
-		GUI.addPlayer(spiller1.getName(), 1000, car);
+		GUI.addPlayer(player1.getName(), 1000, car);
 
 		Car car2 = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.black)
 				.build();
-		GUI.addPlayer(spiller2.getName(), 1000, car2);
+		GUI.addPlayer(player2.getName(), 1000, car2);
 	}
 }

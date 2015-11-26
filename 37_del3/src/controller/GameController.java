@@ -8,73 +8,63 @@ import desktop_fields.Street;
 import desktop_resources.GUI;
 import entity.*;
 
-
 public class GameController {
-	
-	Player player1 = new Player();
-	Player player2 = new Player();
-	
-	Dicebox box = new Dicebox();
-	
-	Field[] field = new Field[22];
-
-	public static void main(String[] args) {
-		new GameController().run();
-	}
+	private Dicebox box = new Dicebox();
+	private Player[] players = new Player[6];
+	private int playerCount;
+	private Field[] fields;
+	private int playerTurn;
 
 	public void run() {
-		setupGame();
-		setupGUI();
-		
-		while (true) {
-			playerTurn(player1);
-			if (player1.getBalance() >= 3000) {
-				GUI.showMessage("spiller "+ player1.getName() +" vinder spillet med " + player1.getBalance() + "point");
-				System.out.println("spiller "+player1.getName()+" vinder spillet med " + player1.getBalance() + "point");
+		Player tmp = players[playerTurn];
+		switch(tmp.getInformation()){
+		case -1: 
+			GUI.showMessage(String.format("Din balance er nu: %d fordi du ikke kan styre din økonomi", tmp.getBalance()));  
+			break;
+		case 0:
+			String answer = GUI.getUserSelection("Vil du købe feltet?", "Ja","Nej");
+			switch(answer){
+			case "Ja": 
+				if(tmp.buyField((Ownable)fields[tmp.getPosition()])) {
+					GUI.setBalance(tmp.getName(), tmp.getBalance());
+					GUI.setOwner(tmp.getPosition(), tmp.getName());
+				} else {
+					GUI.showMessage("Du har ikke penge nok!");
+				}
 				break;
 			}
-			else if (player2.isBankrupt()) {
-				GUI.showMessage("spiller "+player1.getName()+" vinder spillet da spiller "+player2.getName()+" gik konkurs. ");
-				System.out.println("spiller "+player1.getName()+" vinder spillet da spiller "+player2.getName()+" gik konkurs. ");
-				break;
-			}
-
-			playerTurn(player2);
-			if (player2.getBalance() >= 3000) {				
-				GUI.showMessage("spiller "+ player2.getName() +" vinder spillet med " + player2.getBalance() + "point");
-				System.out.println("spiller "+player2.getName()+" vinder spillet med " + player2.getBalance() + "point");
-
-				
-				break;
-			}
-			else if (player1.isBankrupt()) {
-				GUI.showMessage("spiller "+player2.getName()+" vinder spillet da spiller "+player1.getName()+" gik konkurs. ");
-				System.out.println("spiller "+player2.getName()+" vinder spillet da spiller "+player1.getName()+" gik konkurs. ");
-
-				break;
+			break;
+		case 1: 
+			GUI.showMessage("Du ejer feltet");
+			break;
+		case 2:
+			if(fields[tmp.getPosition()] instanceof Tax) {
+				GUI.showMessage("You have payed motherfucker!!!");
+			} else {
+				GUI.showMessage("SHOW ME DA MONEYYYYY!!! BITCHES");
 			}
 		}
-
+		this.switchTurn();
+		
 	}
 
 	private void playerTurn(Player player) {
 		int roll = box.roll();
-		int points = field[roll].getPoints();
-		String fieldname = field[roll].getName();
+		int points = fields[roll].getPoints();
+		String fieldname = fields[roll].getName();
 		boolean check_account = player.addToBalance(points);
-		
-		if(check_account == true){
-			GUI.setBalance(player.getName(), player.getBalance());			
-		}
-		else{
+
+		if (check_account == true) {
+			GUI.setBalance(player.getName(), player.getBalance());
+		} else {
 			player.setBankrupt();
 		}
 
 		System.out.println("spiller" + player.getName() + "  har slået: " + roll + " han fik: " + points
-				+ " og han har landet p� felt: " + field + ", saldo:" + player.getBalance());
+				+ " og han har landet på felt: " + fields + ", saldo:" + player.getBalance());
 		GUI.removeAllCars(player.getName());
-		GUI.setCar(roll-1, player.getName());
-		//Suspend excecution for 200 ms
+		GUI.setCar(roll - 1, player.getName());
+		// Suspend excecution for 200 ms
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
@@ -83,60 +73,236 @@ public class GameController {
 
 	}
 
-	private void setupGame() {
-		field[0] = new Territory("Tribe encampment", 250);
-		field[1] = new Territory("Crater", 250);
-		field[2] = new Territory("Mountain", -100);
-		field[3] = new Territory("Cold desert", 100);
-		field[4] = new Territory("Black cave", -20);
-		field[5] = new Territory("The werewall", 180);
-		field[6] = new Territory("Mountain village", 0);
-		field[7] = new Territory("South Citadel", -70);
-		field[8] = new Territory("Palads gates", 60);
-		field[9] = new Territory("Tower", -80);
-		field[10] = new Territory("Castle", -50);
-		field[11] = new Refuge("Walled city", 650);
-		field[12] = new Refuge("Monastery", 0);
-		field[13] = new LaborCamp("Huts in the mountain", 0);
-		field[14] = new LaborCamp("The pit", 0);
-		field[15] = new Tax("Goldmine", 0);
-		field[16] = new Tax("Caravan", 0);
-		field[17] = new Fleet("Second Sail", 0);
-		field[18] = new Fleet("Sea Grover", 0);
-		field[19] = new Fleet("The Buccanees", 0);
-		field[20] = new Fleet("Privateer armade", 0);
-
+	// creates fields in array
+	public void setupGame() {
+		fields = new Field[] { new Territory("Tribe encampment", 100, 1000), new Territory("Crater", 300, 1500),
+				new Territory("Mountain", 500, 2000), new Territory("Cold desert", 700, 3000),
+				new Territory("Black cave", 1000, 4000), new Territory("The werewall", 1300, 4300),
+				new Territory("Mountain village", 1600, 4750), new Territory("South Citadel", 2000, 5000),
+				new Territory("Palads gates", 2600, 5500), new Territory("Tower", 3200, 6000),
+				new Territory("Castle", 4000, 8000), new Refuge("Walled city", 5000), new Refuge("Monastery", 500),
+				new LaborCamp("Huts in the mountain", 100, 2500), new LaborCamp("The pit", 100, 2500),
+				new Tax("Goldmine", 0), new Tax("Caravan", 0), new Fleet("Second Sail", 4000),
+				new Fleet("Sea Grover", 4000), new Fleet("The Buccanees", 4000), new Fleet("Privateer armade", 4000) };
 	}
 
-	private void setupGUI() {
+	// adds fields to GUI
+	public void setupGUI() {
 
-		desktop_fields.Field[] fields = new desktop_fields.Field[22];
+		desktop_fields.Field[] fields = new desktop_fields.Field[21];
+		Street s = null;
 
-		fields[0] = new Street.Builder().setBgColor(Color.gray).setTitle("tower").build();
-		fields[1] = new Street.Builder().setBgColor(Color.blue).setTitle("Crater").build();
-		fields[2] = new Street.Builder().setBgColor(Color.white).setTitle("Palace gates").build();
-		fields[3] = new Street.Builder().setBgColor(Color.gray).setTitle("Cold Desert").build();
-		fields[4] = new Street.Builder().setBgColor(Color.green).setTitle("Walled city").build();
-		fields[5] = new Street.Builder().setBgColor(Color.orange).setTitle("Monastery").build();
-		fields[6] = new Street.Builder().setBgColor(Color.DARK_GRAY).setTitle("Black cave").build();
-		fields[7] = new Street.Builder().setBgColor(Color.magenta).setTitle("Huts in the mountain").build();
-		fields[8] = new Street.Builder().setBgColor(Color.CYAN).setTitle("The werewall(werewolf-wall)").build();
-		fields[9] = new Street.Builder().setBgColor(Color.blue).setTitle("The pit").build();
-		fields[10] = new Street.Builder().setBgColor(Color.CYAN).setTitle("Goldmine").build();
+		s = new Street.Builder().setBgColor(Color.gray).setTitle("Tribe encampment").build();
+		s.setDescription("Tribe Encampment");
+		s.setSubText("");
+		fields[0] = s;
 
-		player1.setName("Christian");
-		player2.setName("Ronni");
+		s = new Street.Builder().setBgColor(Color.gray).setTitle("Crater").build();
+		s.setDescription("Crater");
+		s.setSubText("");
+		fields[1] = s;
+
+		s = new Street.Builder().setBgColor(Color.white).setTitle("Mountain").build();
+		s.setDescription("Mountain");
+		s.setSubText("");
+		fields[2] = s;
+
+		s = new Street.Builder().setBgColor(Color.gray).setTitle("Cold Desert").build();
+		s.setDescription("Cold Dessert");
+		s.setSubText("");
+		fields[3] = s;
+
+		s = new Street.Builder().setBgColor(Color.green).setTitle("Black cave").build();
+		s.setDescription("Black cave");
+		s.setSubText("");
+		fields[4] = s;
+
+		s = new Street.Builder().setBgColor(Color.orange).setTitle("The werewall").build();
+		s.setDescription("The Werewall");
+		s.setSubText("");
+		fields[5] = s;
+
+		s = new Street.Builder().setBgColor(Color.DARK_GRAY).setTitle("Mountain village").build();
+		s.setDescription("Mountain village");
+		s.setSubText("");
+		fields[6] = s;
+
+		s = new Street.Builder().setBgColor(Color.magenta).setTitle("South Citadel").build();
+		s.setDescription("South Citadel");
+		s.setSubText("");
+		fields[7] = s;
+
+		s = new Street.Builder().setBgColor(Color.CYAN).setTitle("Palace gates").build();
+		s.setDescription("Palace Gates");
+		s.setSubText("");
+		fields[8] = s;
+
+		s = new Street.Builder().setBgColor(Color.gray).setTitle("Tower").build();
+		s.setDescription("Tower");
+		s.setSubText("");
+		fields[9] = s;
+
+		s = new Street.Builder().setBgColor(Color.blue).setTitle("Castle").build();
+		s.setDescription("Castle");
+		s.setSubText("");
+		fields[10] = s;
+
+		s = new Street.Builder().setBgColor(Color.white).setTitle("Walled city").build();
+		s.setDescription("Walled City");
+		s.setSubText("");
+		fields[11] = s;
+
+		s = new Street.Builder().setBgColor(Color.green).setTitle("Monastery").build();
+		s.setDescription("Monastery");
+		s.setSubText("");
+		fields[12] = s;
+
+		desktop_fields.Refuge r = null;
+		r = new desktop_fields.Refuge.Builder().setBgColor(Color.green).setTitle("Huts in the mountain").build();
+		r.setDescription("Huts in the Mountain");
+		r.setSubText("");
+		fields[13] = r;
+
+		r = new desktop_fields.Refuge.Builder().setBgColor(Color.DARK_GRAY).setTitle("The pit").build();
+		r.setDescription("The pit");
+		r.setSubText("");
+		fields[14] = r;
+
+		desktop_fields.Tax t = null;
+		t = new desktop_fields.Tax.Builder().setBgColor(Color.magenta).setTitle("Goldmine").build();
+		t.setDescription("Goldmine");
+		t.setSubText("");
+		fields[15] = t;
+
+		t = new desktop_fields.Tax.Builder().setBgColor(Color.CYAN).setTitle("Caravan").build();
+		t.setDescription("Caravan");
+		t.setSubText("");
+		fields[16] = t;
+
+		desktop_fields.Shipping f = null;
+		f = new desktop_fields.Shipping.Builder().setBgColor(Color.gray).setTitle("Second sail").build();
+		f.setDescription("Second Sail");
+		f.setSubText("");
+		fields[17] = f;
+
+		f = new desktop_fields.Shipping.Builder().setBgColor(Color.blue).setTitle("Sea Grover").build();
+		f.setDescription("Sea Grover");
+		f.setSubText("");
+		fields[18] = f;
+		
+		f = new desktop_fields.Shipping.Builder().setBgColor(Color.CYAN).setTitle("The Buccanees").build();
+		f.setDescription("The Buccaneers");
+		f.setSubText("");
+		fields[19] = f;
+
+		f = new desktop_fields.Shipping.Builder().setBgColor(Color.green).setTitle("Privateer armade").build();
+		f.setDescription("Privateer armade");
+		f.setSubText("");
+		fields[20] = f;
 
 		GUI.create(fields);
-
-		Car car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.RED)
-			
-
-		.build();
-		GUI.addPlayer(player1.getName(), 1000, car);
-
-		Car car2 = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.black)
-				.build();
-		GUI.addPlayer(player2.getName(), 1000, car2);
 	}
+
+	private Car getCar(int i) {
+		Car car = null;
+		switch (i) {
+		case 0:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.RED).build();
+			break;
+		case 1:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.BLACK).build();
+			break;
+		case 2:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.BLUE).build();
+			break;
+		case 3:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.GREEN).build();
+			break;
+		case 4:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.GRAY).build();
+			break;
+		case 5:
+			car = new Car.Builder().typeCar().patternHorizontalDualColor().primaryColor(Color.CYAN).build();
+			break;
+		}
+		return car;
+	}
+
+	//
+	public void addPlayer() {
+		String playerName = GUI.getUserString("Write user name");
+
+		if (playerName.length() != 0) {
+			GUI.addPlayer(playerName, 30000, getCar(playerCount));
+			playerCount++;
+			for (int i = 0; i < players.length; i++) {
+				if (players[i] == null) {
+					players[i] = new Player(playerName, i);
+					break;
+				}
+			}
+		}
+	}
+
+	public void roll() {
+		GUI.getUserButtonPressed("Kast terning", "Dice");
+		int r = box.roll();
+		GUI.setDice(box.getDice()[0].getValue(), box.getDice()[1].getValue());
+		players[playerTurn].setLastRoll(r);
+		players[playerTurn].movePlayer(r);
+		GUI.setCar(players[playerTurn].getPosition(), players[playerTurn].getName());
+	}
+
+	public void switchTurn() {
+		int leif = 0;
+		for (int i = 0; i < players.length; i++) {
+			if (players[i] != null) {
+				leif++;
+			}
+		}
+		switch (playerTurn) {
+		case 0:
+			playerTurn = 1;
+			break;
+		case 1:
+			if(leif == 2) {
+				playerTurn = 0;
+			} else {
+				playerTurn = 2;
+			}
+			break;
+		case 2:
+			if (leif == 3){
+				playerTurn = 0;
+			} else {
+				playerTurn = 3;
+			}
+			break;
+		case 3:
+			if (leif == 4) {
+				playerTurn = 0;
+			} else {
+				playerTurn = 4;
+			}
+			break;
+		case 4:
+			if (leif == 5) {
+				playerTurn = 0;
+			} else {
+				playerTurn = 5;
+			}
+			break;
+		case 5:
+			playerTurn = 0;
+			break;
+		}
+	}
+	
+	public int landOnField(){
+		Player unicorn = players[playerTurn];
+		int position = unicorn.getPosition();
+		fields[position].landOnField(unicorn);
+		return unicorn.getInformation();
+	}
+	
 }

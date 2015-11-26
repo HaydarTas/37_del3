@@ -3,6 +3,10 @@ package entity;
 public abstract class Field {
 	private String name;
 	private int points;
+	
+	public Field(String name){
+		this.name = name;
+	}
 
 	public Field(String name, int points) {
 		this.name = name;
@@ -13,14 +17,17 @@ public abstract class Field {
 	public String toString() {
 		return "felt [name=" + name + ", points=" + points + "]";
 	}
-	
+
 	public int getPoints() {
 		return points;
 	}
-	
+
 	public String getName() {
 		return name;
+
 	}
 
+	public abstract void landOnField(Player p);
 }
+
 

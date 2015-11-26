@@ -1,35 +1,28 @@
 package entity;
 
-
-
 public class Dicebox {
 
-	private Dice t1 = new Dice();
-	private Dice t2 = new Dice();
-     
-    
-    
+	private Dice d1 = new Dice();
+	private Dice d2 = new Dice();
+
 	public int roll() {
-		
-		int res1 = t1.roll();
-		int res2 = t2.roll();
-		
-		int res = res1 + res2;
-		return res;
+		return d1.roll() + d2.roll();
 	}
-	
-	public boolean isEqual(){
-		if (t1.getValue()==t2.getValue()){
-			 return true;
+
+	public boolean isEqual() {
+		if (d1.getValue() == d2.getValue()) {
+			return true;
 		}
 		return false;
 	}
 
-	
-	public int getDiceSum(int res){
+	public int getDiceSum() {
+		return d1.getValue() + d2.getValue();
 
-		return t1.getValue() + t2.getValue();
-		
+	}
+
+	public Dice[] getDice() {
+		return new Dice[] { d1, d2 };
 	}
 
 }

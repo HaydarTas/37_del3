@@ -1,10 +1,26 @@
 package entity;
 
-public class Refuge extends Ownable {
+public class Refuge extends Field {
 
-	public Refuge(String name, int points) {
-		super(name, points);
-		// TODO Auto-generated constructor stub
+	int bonus;
+	String name;
+	
+	public Refuge(String name, int bonus){
+		super(name);
+		this.bonus = bonus;
+		this.name = name;
+	}
+	public void landOnField(Player p){
+		p.addToBalance(bonus);
+		p.setInformation(2);
 	}
 
+	int getBonus() {
+		return bonus;
+	}
+
+	void setBonus(int bonus) {
+		this.bonus = bonus;
+	}
 }
+
